@@ -1,7 +1,6 @@
 # Weather-Forecast
 
-<img width="1868" height="901" alt="Screenshot 2025-10-18 175527" src="https://github.com/user-attachments/assets/44f47d77-56a0-4775-9b79-5d6e81e10066" />
-
+<img width="1868" height="901" alt="Screenshot 2025-10-18 175527" src="https://github.com/user-attachments/assets/86ba91d6-bc8a-4023-88a5-eec909de2e1c" />
 
 # Django Weather Forecast Web App 🌦️
 
