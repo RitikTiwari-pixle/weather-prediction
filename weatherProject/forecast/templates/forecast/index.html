@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"> <title>Weather Forecast</title>
+</head>
+<body>
+    <main style="background-image: url('{% static background_image %}');">
+        <div class="overlay"></div>
+        <section class="sidebar">
+            <form method="POST" class="search-container" id="weather-form">
+                {% csrf_token %}
+                <i class="bi bi-geo-alt"></i>
+                <input type="text" name="city" class="geo-input" id="city-input" placeholder="Search for a location..." value="{{ location }}" required autocomplete="off">
+                <button type="submit" class="search-button"><i class="bi bi-search"></i></button>
+                <div class="suggestions-container" id="suggestions-box"></div>
+            </form>
+
+            <div class="weather-display">
+                <h1 class="temperature">{{ temperature }}°C</h1>
+                <p class="feels-like">feels like: {{ feelslike }}°</p>
+            </div>
+            
+            <div class="sidebar-stats">
+                <div class="stat-box-side">
+                    <p class="stat-label">Humidity</p>
+                    <p class="stat-value">{{ stats_humidity }}%</p>
+                </div>
+                <div class="stat-box-side">
+                    <p class="stat-label">Clouds</p>
+                    <p class="stat-value">{{ clouds }}%</p>
+                </div>
+                <div class="stat-box-side">
+                    <p class="stat-label">Rain Chance</p>
+                    <p class="stat-value"><i class="bi bi-cloud-drizzle"></i> {{ rain_prediction }}%</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="main-content">
+            <h2 class="main-title">Weather Forecast</h2>
+            <h1 class="weather-description">{{ description }}</h1>
+            <p class="location-details"><i class="bi bi-pin-map-fill"></i>{{ city }}, {{ country }} - {{ localtime }} - {{ date }}</p>
+            <div class="weather-stats-grid">
+                <div class="stat-box"><i class="bi bi-wind"></i><div><h4>Wind Speed</h4><p>{{ wind }} km/h</p></div></div>
+                <div class="stat-box"><i class="bi bi-speedometer2"></i><div><h4>Pressure</h4><p>{{ pressure }} mb</p></div></div>
+                <div class="stat-box"><i class="bi bi-eye"></i><div><h4>Visibility</h4><p>{{ visibility }} km</p></div></div>
+                <div class="stat-box"><i class="bi bi-thermometer-half"></i><div><h4>Temp Range</h4><p>{{ MinTemp }}°C - {{ MaxTemp }}°C</p></div></div>
+            </div>
+            <h3 class="forecast-header">Hourly Forecast</h3>
+            <div class="forecast-container">
+                {% for hour in hourly_forecast %}
+                <div class="forecast-card">
+                    <p class="forecast-time">{{ hour.time }}</p>
+                    <img src="http://openweathermap.org/img/wn/{{ hour.icon }}@2x.png" alt="icon" class="forecast-icon">
+                    <p class="forecast-temp">{{ hour.temp }}°C</p>
+                </div>
+                {% empty %}
+                <p class="no-forecast">Forecast data is currently unavailable.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const cityInput = document.getElementById('city-input');
+        const suggestionsBox = document.getElementById('suggestions-box');
+        const weatherForm = document.getElementById('weather-form');
+
+        cityInput.addEventListener('input', async function() {
+            const query = this.value;
+            if (query.length < 2) {
+                suggestionsBox.innerHTML = '';
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+            try {
+                const response = await fetch(`/autocomplete-city/?term=${query}`);
+                const suggestions = await response.json();
+                
+                suggestionsBox.innerHTML = '';
+                if (suggestions.length > 0) {
+                    suggestions.forEach(suggestion => {
+                        const div = document.createElement('div');
+                        div.classList.add('suggestion-item');
+                        div.innerHTML = `<span class="primary-text">${suggestion.primary}</span>
+                                         <span class="secondary-text">${suggestion.secondary}</span>`;
+                        div.onclick = () => {
+                            cityInput.value = suggestion.full_text;
+                            suggestionsBox.style.display = 'none';
+                            weatherForm.submit();
+                        };
+                        suggestionsBox.appendChild(div);
+                    });
+                    suggestionsBox.style.display = 'block';
+                } else {
+                    suggestionsBox.style.display = 'none';
+                }
+            } catch (error) { console.error('Error fetching suggestions:', error); }
+        });
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.search-container') === null) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
