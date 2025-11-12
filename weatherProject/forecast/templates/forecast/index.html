@@ -61,11 +61,15 @@
             <div id="hourly-forecast">
                 <h3 class="forecast-header">Hourly Forecast</h3>
                 <div class="forecast-container">
+                    <!-- 
+                      FIX 5: Loop over 'hourly_forecast' (from views.py)
+                      FIX 6: Removed the icon link, as the CSV model does not provide one.
+                    -->
                     {% for hour in hourly_forecast %}
                     <div class="forecast-card">
                         <p class="forecast-time">{{ hour.time }}</p>
-                        <img src="http://openweathermap.org/img/wn/{{ hour.icon }}@2x.png" alt="icon" class="forecast-icon">
-                        <p class="forecast-temp">{{ hour.temp }}°C</p>
+                        <p class="forecast-temp" style="margin-top: 15px;">{{ hour.temp }}°C</p> 
+                        <!-- Added margin-top to re-center the text -->
                     </div>
                     {% empty %}
                     <p class="no-forecast">Forecast data is currently unavailable.</p>
@@ -80,7 +84,8 @@
                     {% for day in daily_forecast %}
                     <div class="daily-card">
                         <p class="daily-day">{{ day.day }}</p>
-                        <img src="http://openweathermap.org/img/wn/{{ day.icon }}@2x.png" alt="icon" class="daily-icon">
+                        <!-- FIX 7: Changed 'day.icon' to 'day.icon_url' to match the view -->
+                        <img src="{{ day.icon_url }}" alt="icon" class="daily-icon">
                         <p class="daily-desc">{{ day.description }}</p>
                         <p class="daily-temp">{{ day.temp_max }}° / {{ day.temp_min }}°</p>
                     </div>
@@ -94,6 +99,7 @@
     </main>
 
     <script>
+        // No changes needed to the city autocomplete script
         const cityInput = document.getElementById('city-input');
         const suggestionsBox = document.getElementById('suggestions-box');
         const weatherForm = document.getElementById('weather-form');
@@ -106,6 +112,9 @@
                 return;
             }
             try {
+                // This URL should match one in forecast/urls.py
+                // If you add autocomplete, make sure the URL is correct.
+                // For now, this part is not in your urls.py, but I will leave the JS
                 const response = await fetch(`/autocomplete-city/?term=${query}`);
                 const suggestions = await response.json();
                 
@@ -135,7 +144,9 @@
             }
         });
     </script>
+    
     <!-- Link the chartSetup.js file -->
+    <!-- This file handles the Hourly/Daily toggle buttons -->
     <script src="{% static 'js/chartSetup.js' %}"></script>
 </body>
 </html>

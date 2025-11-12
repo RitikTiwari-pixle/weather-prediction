@@ -60,15 +60,17 @@ def load_and_train_model():
     print("Loading CSV and training ML model for the first time...")
     try:
         ml_data = pd.read_csv(csv_path)
-        ml_data = ml_data.dropna(subset=['Temperature (C)', 'Humidity'])
-        ml_data = ml_data.drop_duplicates(subset=['Temperature (C)', 'Humidity'])
+        
+        # --- FIX 1: Use correct column names 'Temp' and 'Humidity' from weather.csv ---
+        ml_data = ml_data.dropna(subset=['Temp', 'Humidity'])
+        ml_data = ml_data.drop_duplicates(subset=['Temp', 'Humidity'])
 
-        # We train to predict Temperature (C)
+        # We train to predict Temp
         df_train = ml_data.copy()
-        df_train['Target'] = df_train['Temperature (C)'].shift(-1)
+        df_train['Target'] = df_train['Temp'].shift(-1)
         df_train = df_train.dropna()
         
-        X = df_train[['Temperature (C)', 'Humidity']] # Use Temp and Humidity for better prediction
+        X = df_train[['Temp', 'Humidity']] # Use Temp and Humidity for prediction
         y = df_train['Target']
         
         temp_model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
@@ -79,7 +81,8 @@ def load_and_train_model():
         return temp_model
         
     except FileNotFoundError:
-        print(f"\n\nCRITICAL ERROR: Could not find 'weatherHistory.csv'.\n"
+        # --- FIX 2: Corrected error message to match file name ---
+        print(f"\n\nCRITICAL ERROR: Could not find 'weather.csv'.\n"
               f"Please make sure the file is in this folder:\n{settings.BASE_DIR}\n")
         return None
     except Exception as e:
@@ -93,8 +96,8 @@ def predict_future_hourly(model, current_temp, current_humidity, hours=8):
     last_temp = current_temp
     last_humidity = current_humidity # We'll just re-use the current humidity as an estimate
 
-    # Create a DataFrame for prediction to match feature names
-    feature_names = ['Temperature (C)', 'Humidity']
+    # --- FIX 3: Use correct feature name 'Temp' to match the model ---
+    feature_names = ['Temp', 'Humidity']
 
     for _ in range(hours):
         # Model expects a 2D array: [[temp, humidity]]
@@ -125,6 +128,7 @@ def weather_view(request):
         'localtime': '--:--', 'date': datetime.now().strftime("%d %B, %Y"), 'wind': '--',
         'pressure': '--', 'visibility': '--', 'MinTemp': '--', 'MaxTemp': '--', 
         'hourly_forecast_json': "[]", # Send empty JSON for the chart
+        'hourly_forecast': [], # Add empty list for the template loop
         'daily_forecast': [],
         'icon_url': 'https://placehold.co/64x64/000000/ffffff?text=?',
     }
@@ -156,14 +160,12 @@ def weather_view(request):
                     'day': dt.strftime('%a, %b %d'),
                     'temp_max': int(day_data['day']['maxtemp_c']),
                     'temp_min': int(day_data['day']['mintemp_c']),
-                    # *** ICON FIX IS HERE ***
-                    # The URL from WeatherAPI.com is missing 'https:'
                     'icon_url': 'https:' + day_data['day']['condition']['icon'], # Full URL
                     'description': day_data['day']['condition']['text'].title(),
                 })
 
             # --- HYBRID STEP 3: Get Hourly Forecast (FROM CSV MODEL) ---
-            hourly_forecast_data = [] # This will hold data for the chart
+            hourly_forecast_data = [] # This will hold data for the template loop
             if temp_model: # Only run if the model trained successfully
                 # Get starting points from API
                 current_temp_c = current['temp_c']
@@ -182,6 +184,7 @@ def weather_view(request):
                     hourly_forecast_data.append({
                         'time': time_str,
                         'temp': int(future_temps[i]),
+                        # Note: We don't have an icon from the CSV model
                     })
             
             # Convert hourly data to JSON to pass to the chart
@@ -193,7 +196,6 @@ def weather_view(request):
                 
                 # Current data from API
                 'temperature': int(current['temp_c']),
-                # *** ICON FIX IS HERE ***
                 'icon_url': 'https:' + current['condition']['icon'], # Full URL
                 'description': current['condition']['text'].title(),
                 'city': location['name'],
@@ -207,16 +209,19 @@ def weather_view(request):
 
                 # Details grid from API
                 'stats_humidity': current['humidity'],
+                # --- FIX: Added the 'clouds' data from the API ---
+                'clouds': current['cloud'], 
                 'wind': round(current['wind_kph'], 1),
                 'pressure': current['pressure_mb'],
                 'feelslike': int(current['feelslike_c']),
                 'visibility': current['vis_km'],
-                # Get rain chance from the first day's forecast
                 'rain_prediction': int(forecast_daily_api[0]['day'].get('daily_chance_of_rain', 0)),
 
                 # Forecast data
                 'daily_forecast': daily_forecast,           # 10-Day Daily from API
                 'hourly_forecast_json': hourly_forecast_json, # 8-Hour Hourly from CSV
+                # --- FIX 4: Pass the list for the hourly template loop ---
+                'hourly_forecast': hourly_forecast_data,
             }
             return render(request, 'forecast/index.html', context)
 
