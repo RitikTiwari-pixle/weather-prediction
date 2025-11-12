@@ -14,7 +14,7 @@
             <form method="POST" class="search-container" id="weather-form">
                 {% csrf_token %}
                 <i class="bi bi-geo-alt"></i>
-                <input type="text" name="city" class="geo-input" id="city-input" placeholder="Search for a location..." value="{{ location }}" required autocomplete="off">
+                <input type="text" name="city" class="geo-input" id="city-input" placeholder="Search for a location..." value="{{ location }}">
                 <button type="submit" class="search-button"><i class="bi bi-search"></i></button>
                 <div class="suggestions-container" id="suggestions-box"></div>
             </form>
@@ -50,18 +50,46 @@
                 <div class="stat-box"><i class="bi bi-eye"></i><div><h4>Visibility</h4><p>{{ visibility }} km</p></div></div>
                 <div class="stat-box"><i class="bi bi-thermometer-half"></i><div><h4>Temp Range</h4><p>{{ MinTemp }}°C - {{ MaxTemp }}°C</p></div></div>
             </div>
-            <h3 class="forecast-header">Hourly Forecast</h3>
-            <div class="forecast-container">
-                {% for hour in hourly_forecast %}
-                <div class="forecast-card">
-                    <p class="forecast-time">{{ hour.time }}</p>
-                    <img src="http://openweathermap.org/img/wn/{{ hour.icon }}@2x.png" alt="icon" class="forecast-icon">
-                    <p class="forecast-temp">{{ hour.temp }}°C</p>
-                </div>
-                {% empty %}
-                <p class="no-forecast">Forecast data is currently unavailable.</p>
-                {% endfor %}
+
+            <!-- ===== NEW: Forecast Toggle Buttons ===== -->
+            <div class="forecast-toggle">
+                <button id="hourly-btn" class="forecast-btn active">Hourly</button>
+                <button id="daily-btn" class="forecast-btn">Daily</button>
             </div>
+
+            <!-- ===== HOURLY FORECAST (Modified) ===== -->
+            <div id="hourly-forecast">
+                <h3 class="forecast-header">Hourly Forecast</h3>
+                <div class="forecast-container">
+                    {% for hour in hourly_forecast %}
+                    <div class="forecast-card">
+                        <p class="forecast-time">{{ hour.time }}</p>
+                        <img src="http://openweathermap.org/img/wn/{{ hour.icon }}@2x.png" alt="icon" class="forecast-icon">
+                        <p class="forecast-temp">{{ hour.temp }}°C</p>
+                    </div>
+                    {% empty %}
+                    <p class="no-forecast">Forecast data is currently unavailable.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ===== NEW: Daily Forecast Section ===== -->
+            <div id="daily-forecast" class="forecast-hidden">
+                <h3 class="forecast-header">8-Day Forecast</h3>
+                <div class="daily-forecast-container">
+                    {% for day in daily_forecast %}
+                    <div class="daily-card">
+                        <p class="daily-day">{{ day.day }}</p>
+                        <img src="http://openweathermap.org/img/wn/{{ day.icon }}@2x.png" alt="icon" class="daily-icon">
+                        <p class="daily-desc">{{ day.description }}</p>
+                        <p class="daily-temp">{{ day.temp_max }}° / {{ day.temp_min }}°</p>
+                    </div>
+                    {% empty %}
+                    <p class="no-forecast">Daily forecast is unavailable.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
         </section>
     </main>
 
@@ -107,5 +135,7 @@
             }
         });
     </script>
+    <!-- Link the chartSetup.js file -->
+    <script src="{% static 'js/chartSetup.js' %}"></script>
 </body>
 </html>

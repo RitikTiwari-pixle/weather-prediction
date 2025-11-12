@@ -41,3 +41,58 @@ main { width: 90vw; max-width: 1200px; height: 85vh; display: flex; border-radiu
 .forecast-temp { font-size: 1.4em; font-weight: 600; }
 .no-forecast { color: var(--text-muted); }
 .forecast-header { font-weight: 500; color: var(--text-muted); margin-bottom: 15px; margin-top: 15px; }
+
+/* ===== NEW STYLES ===== */
+
+/* Toggle Buttons */
+.forecast-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 15px;
+}
+.forecast-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    padding: 8px 15px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: 0.2s ease;
+}
+.forecast-btn.active {
+    background: #ffffff;
+    color: var(--bg-color);
+    border-color: #ffffff;
+}
+.forecast-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Daily Forecast Container */
+.daily-forecast-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.daily-card {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 2fr 1.5fr;
+    align-items: center;
+    background: var(--glass-bg);
+    padding: 10px 15px;
+    border-radius: 15px;
+}
+.daily-day { font-weight: 600; font-size: 1.1em; }
+.daily-icon { width: 45px; height: 45px; }
+.daily-desc { color: var(--text-muted); text-transform: capitalize; }
+.daily-temp { font-weight: 600; font-size: 1.1em; text-align: right; }
+
+/* Utility class to hide forecast */
+.forecast-hidden {
+    display: none;
+}
+/* ===== END OF NEW STYLES ===== */

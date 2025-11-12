@@ -117,6 +117,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# We go back to the original OpenWeatherMap key.
+# This key will work for the basic 'weather' API.
+OPENWEATHER_API_KEY = '92e4d6bd701010e16c3a360b2aa4f8f7'
+WEATHERAPI_KEY="27ad1f22abed48d599550120250811"
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
