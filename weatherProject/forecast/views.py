@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 from django.conf import settings
 import requests
 from datetime import datetime, timedelta # Added timedelta
@@ -109,13 +110,15 @@ def predict_future_hourly(model, current_temp, current_humidity, hours=8):
         last_temp = next_temp # Use the new prediction as input for the next one
     return predictions
 
+
+
 # ==================================================
 # ---         MAIN DJANGO VIEW FUNCTION          ---
 # ==================================================
 
 def weather_view(request):
     API_KEY = settings.WEATHERAPI_KEY
-    default_background = 'https://placehold.co/1200x800/507d9a/ffffff?text=Weather+Awaits'
+    default_background = 'https://placehold.co/1200x800/181b21/181b21'
     
     # Load or get the cached ML model
     temp_model = load_and_train_model()
@@ -124,7 +127,7 @@ def weather_view(request):
         'background_image': default_background, 
         'temperature': '--', 'feelslike': '--', 
         'stats_humidity': '--', 'clouds': '--', 'rain_prediction': '--', 'location': '',
-        'description': 'Weather Awaits', 'city': '', 'country': '', 
+        'description': 'Welcome', 'city': '', 'country': '', 
         'localtime': '--:--', 'date': datetime.now().strftime("%d %B, %Y"), 'wind': '--',
         'pressure': '--', 'visibility': '--', 'MinTemp': '--', 'MaxTemp': '--', 
         'hourly_forecast_json': "[]", # Send empty JSON for the chart

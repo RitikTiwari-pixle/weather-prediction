@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}"> <title>Weather Forecast</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Weather Forecast</title>
 </head>
+
 <body>
-    <main style="background-image: url('{% static background_image %}');">
+    <main style="background-image: url('{{ background_image }}');">
         <div class="overlay"></div>
         <section class="sidebar">
             <form method="POST" class="search-container" id="weather-form">
                 {% csrf_token %}
                 <i class="bi bi-geo-alt"></i>
-                <input type="text" name="city" class="geo-input" id="city-input" placeholder="Search for a location..." value="{{ location }}">
+                <input type="text" name="city" class="geo-input" id="city-input" placeholder="Search for a location..."
+                    value="{{ location }}">
                 <button type="submit" class="search-button"><i class="bi bi-search"></i></button>
-                <div class="suggestions-container" id="suggestions-box"></div>
+
             </form>
 
             <div class="weather-display">
                 <h1 class="temperature">{{ temperature }}°C</h1>
                 <p class="feels-like">feels like: {{ feelslike }}°</p>
             </div>
-            
+
             <div class="sidebar-stats">
                 <div class="stat-box-side">
                     <p class="stat-label">Humidity</p>
@@ -43,12 +47,33 @@
         <section class="main-content">
             <h2 class="main-title">Weather Forecast</h2>
             <h1 class="weather-description">{{ description }}</h1>
-            <p class="location-details"><i class="bi bi-pin-map-fill"></i>{{ city }}, {{ country }} - {{ localtime }} - {{ date }}</p>
+            <p class="location-details"><i class="bi bi-pin-map-fill"></i>{{ city }}, {{ country }} - {{ localtime }} -
+                {{ date }}</p>
             <div class="weather-stats-grid">
-                <div class="stat-box"><i class="bi bi-wind"></i><div><h4>Wind Speed</h4><p>{{ wind }} km/h</p></div></div>
-                <div class="stat-box"><i class="bi bi-speedometer2"></i><div><h4>Pressure</h4><p>{{ pressure }} mb</p></div></div>
-                <div class="stat-box"><i class="bi bi-eye"></i><div><h4>Visibility</h4><p>{{ visibility }} km</p></div></div>
-                <div class="stat-box"><i class="bi bi-thermometer-half"></i><div><h4>Temp Range</h4><p>{{ MinTemp }}°C - {{ MaxTemp }}°C</p></div></div>
+                <div class="stat-box"><i class="bi bi-wind"></i>
+                    <div>
+                        <h4>Wind Speed</h4>
+                        <p>{{ wind }} km/h</p>
+                    </div>
+                </div>
+                <div class="stat-box"><i class="bi bi-speedometer2"></i>
+                    <div>
+                        <h4>Pressure</h4>
+                        <p>{{ pressure }} mb</p>
+                    </div>
+                </div>
+                <div class="stat-box"><i class="bi bi-eye"></i>
+                    <div>
+                        <h4>Visibility</h4>
+                        <p>{{ visibility }} km</p>
+                    </div>
+                </div>
+                <div class="stat-box"><i class="bi bi-thermometer-half"></i>
+                    <div>
+                        <h4>Temp Range</h4>
+                        <p>{{ MinTemp }}°C - {{ MaxTemp }}°C</p>
+                    </div>
+                </div>
             </div>
 
             <!-- ===== NEW: Forecast Toggle Buttons ===== -->
@@ -68,7 +93,7 @@
                     {% for hour in hourly_forecast %}
                     <div class="forecast-card">
                         <p class="forecast-time">{{ hour.time }}</p>
-                        <p class="forecast-temp" style="margin-top: 15px;">{{ hour.temp }}°C</p> 
+                        <p class="forecast-temp" style="margin-top: 15px;">{{ hour.temp }}°C</p>
                         <!-- Added margin-top to re-center the text -->
                     </div>
                     {% empty %}
@@ -79,7 +104,7 @@
 
             <!-- ===== NEW: Daily Forecast Section ===== -->
             <div id="daily-forecast" class="forecast-hidden">
-                <h3 class="forecast-header">8-Day Forecast</h3>
+                <h3 class="forecast-header">10-Day Forecast</h3>
                 <div class="daily-forecast-container">
                     {% for day in daily_forecast %}
                     <div class="daily-card">
@@ -93,60 +118,10 @@
                     <p class="no-forecast">Daily forecast is unavailable.</p>
                     {% endfor %}
                 </div>
-            </div>
 
-        </section>
-    </main>
-
-    <script>
-        // No changes needed to the city autocomplete script
-        const cityInput = document.getElementById('city-input');
-        const suggestionsBox = document.getElementById('suggestions-box');
-        const weatherForm = document.getElementById('weather-form');
-
-        cityInput.addEventListener('input', async function() {
-            const query = this.value;
-            if (query.length < 2) {
-                suggestionsBox.innerHTML = '';
-                suggestionsBox.style.display = 'none';
-                return;
-            }
-            try {
-                // This URL should match one in forecast/urls.py
-                // If you add autocomplete, make sure the URL is correct.
-                // For now, this part is not in your urls.py, but I will leave the JS
-                const response = await fetch(`/autocomplete-city/?term=${query}`);
-                const suggestions = await response.json();
-                
-                suggestionsBox.innerHTML = '';
-                if (suggestions.length > 0) {
-                    suggestions.forEach(suggestion => {
-                        const div = document.createElement('div');
-                        div.classList.add('suggestion-item');
-                        div.innerHTML = `<span class="primary-text">${suggestion.primary}</span>
-                                         <span class="secondary-text">${suggestion.secondary}</span>`;
-                        div.onclick = () => {
-                            cityInput.value = suggestion.full_text;
-                            suggestionsBox.style.display = 'none';
-                            weatherForm.submit();
-                        };
-                        suggestionsBox.appendChild(div);
-                    });
-                    suggestionsBox.style.display = 'block';
-                } else {
-                    suggestionsBox.style.display = 'none';
-                }
-            } catch (error) { console.error('Error fetching suggestions:', error); }
-        });
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.search-container') === null) {
-                suggestionsBox.style.display = 'none';
-            }
-        });
-    </script>
-    
-    <!-- Link the chartSetup.js file -->
-    <!-- This file handles the Hourly/Daily toggle buttons -->
-    <script src="{% static 'js/chartSetup.js' %}"></script>
+                <!-- Link the chartSetup.js file -->
+                <!-- This file handles the Hourly/Daily toggle buttons -->
+                <script src="{% static 'js/chartSetup.js' %}"></script>
 </body>
+
 </html>
